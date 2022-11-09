@@ -49,7 +49,7 @@ void RenderToTexture::LoadTexture(ID3D12Device* device) {
 		TEXTURE_RESOLUTION,
 		1,
 		1,
-		DXGI_FORMAT_R32_FLOAT,
+		DXGI_FORMAT_R32G32B32A32_FLOAT,
 		{1,0},
 		D3D12_TEXTURE_LAYOUT_UNKNOWN,
 		D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET
@@ -57,8 +57,8 @@ void RenderToTexture::LoadTexture(ID3D12Device* device) {
 
 	CD3DX12_HEAP_PROPERTIES heapProps(D3D12_HEAP_TYPE_DEFAULT);
 	D3D12_CLEAR_VALUE optimalClearVal;
-	optimalClearVal.Format = DXGI_FORMAT_R32_FLOAT;
-	optimalClearVal.Color[0] = 0.5f;
+	optimalClearVal.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+	optimalClearVal.Color[0] = 0.0f;
 	optimalClearVal.Color[1] = 0.0f;
 	optimalClearVal.Color[2] = 0.0f;
 	optimalClearVal.Color[3] = 0.0f;
@@ -79,7 +79,7 @@ void RenderToTexture::LoadTexture(ID3D12Device* device) {
 	};
 
 	D3D12_RENDER_TARGET_VIEW_DESC rtvDesc = {
-		DXGI_FORMAT_R32_FLOAT,
+		DXGI_FORMAT_R32G32B32A32_FLOAT,
 		D3D12_RTV_DIMENSION_TEXTURE2D
 	};
 
@@ -100,10 +100,13 @@ void RenderToTexture::FillCommandList(ID3D12GraphicsCommandList* commandList) {
 	CD3DX12_RESOURCE_BARRIER resourceBarrier = CD3DX12_RESOURCE_BARRIER::Transition(m_texture.Get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET);
 	commandList->ResourceBarrier(1, &resourceBarrier);
 
+	commandList->RSSetViewports(1, &m_viewport);
+	commandList->RSSetScissorRects(1, &m_scissorRect);
+
 	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = m_rtvHeap->GetCPUDescriptorHandleForHeapStart();
 	commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, NULL);
 
-	const float clearColor[] = { 0.5f, 0.0f, 0.0f, 0.0f };
+	const float clearColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
 	commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
 
 	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -116,7 +119,7 @@ void RenderToTexture::FillCommandList(ID3D12GraphicsCommandList* commandList) {
 
 void RenderToTexture::CreateSRV(ID3D12Device* device, ID3D12DescriptorHeap* srvHeap) {
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {
-		DXGI_FORMAT_R32_FLOAT,
+		DXGI_FORMAT_R32G32B32A32_FLOAT,
 		D3D12_SRV_DIMENSION_TEXTURE2D,
 		D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING
 	};
@@ -157,7 +160,7 @@ void RenderToTexture::CreatePipelineState(ID3D12Device* device, ID3D12RootSignat
 	psDesc.SampleMask = UINT_MAX;
 	psDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 	psDesc.NumRenderTargets = 1;
-	psDesc.RTVFormats[0] = DXGI_FORMAT_R32_FLOAT;
+	psDesc.RTVFormats[0] = DXGI_FORMAT_R32G32B32A32_FLOAT;
 	psDesc.SampleDesc.Count = 1;
 
 

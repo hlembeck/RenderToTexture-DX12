@@ -1,4 +1,4 @@
-Texture2D<float> gTexture : register(t0);
+Texture2D<float4> gTexture : register(t0);
 SamplerState gSampler : register(s0);
 
 float4 vsMain(float3 pos : POSITION) : SV_POSITION{
@@ -6,5 +6,5 @@ float4 vsMain(float3 pos : POSITION) : SV_POSITION{
 }
 
 float4 psMain(float4 pos : SV_POSITION) : SV_TARGET{
-	return float4(gTexture.Sample(gSampler, pos.xy),0.0f,0.0f,1.0f);
+	return gTexture.Sample(gSampler, pos.xy);
 }
