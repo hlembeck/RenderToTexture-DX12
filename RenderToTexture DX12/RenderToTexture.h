@@ -1,7 +1,7 @@
 #pragma once
 #include "Shared.h"
 
-constexpr UINT TEXTURE_RESOLUTION = 4;
+constexpr UINT TEXTURE_RESOLUTION = 16;
 
 //Learning how to render to a texture, which is then used as SRV in the main pass.
 class RenderToTexture {

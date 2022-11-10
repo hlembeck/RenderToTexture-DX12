@@ -43,13 +43,13 @@ void RenderToTexture::LoadVertices(ID3D12Device* device) {
 
 void RenderToTexture::LoadTexture(ID3D12Device* device) {
 	D3D12_RESOURCE_DESC resourceDesc = {
-		D3D12_RESOURCE_DIMENSION_TEXTURE2D,
+		D3D12_RESOURCE_DIMENSION_TEXTURE3D,
 		0,
 		TEXTURE_RESOLUTION,
 		TEXTURE_RESOLUTION,
+		TEXTURE_RESOLUTION,
 		1,
-		1,
-		DXGI_FORMAT_R32G32B32A32_FLOAT,
+		DXGI_FORMAT_R32_FLOAT,
 		{1,0},
 		D3D12_TEXTURE_LAYOUT_UNKNOWN,
 		D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET
@@ -57,7 +57,7 @@ void RenderToTexture::LoadTexture(ID3D12Device* device) {
 
 	CD3DX12_HEAP_PROPERTIES heapProps(D3D12_HEAP_TYPE_DEFAULT);
 	D3D12_CLEAR_VALUE optimalClearVal;
-	optimalClearVal.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+	optimalClearVal.Format = DXGI_FORMAT_R32_FLOAT;
 	optimalClearVal.Color[0] = 0.0f;
 	optimalClearVal.Color[1] = 0.0f;
 	optimalClearVal.Color[2] = 0.0f;
@@ -79,16 +79,17 @@ void RenderToTexture::LoadTexture(ID3D12Device* device) {
 	};
 
 	D3D12_RENDER_TARGET_VIEW_DESC rtvDesc = {
-		DXGI_FORMAT_R32G32B32A32_FLOAT,
-		D3D12_RTV_DIMENSION_TEXTURE2D
+		DXGI_FORMAT_R32_FLOAT,
+		D3D12_RTV_DIMENSION_TEXTURE3D
 	};
 
-	D3D12_TEX2D_RTV texRTV = {
+	D3D12_TEX3D_RTV texRTV = {
 		0,
-		0
+		0,
+		-1
 	};
 
-	rtvDesc.Texture2D = texRTV;
+	rtvDesc.Texture3D = texRTV;
 
 	device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&m_rtvHeap));
 	device->CreateRenderTargetView(m_texture.Get(), &rtvDesc, m_rtvHeap->GetCPUDescriptorHandleForHeapStart());
@@ -119,19 +120,18 @@ void RenderToTexture::FillCommandList(ID3D12GraphicsCommandList* commandList) {
 
 void RenderToTexture::CreateSRV(ID3D12Device* device, ID3D12DescriptorHeap* srvHeap) {
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {
-		DXGI_FORMAT_R32G32B32A32_FLOAT,
-		D3D12_SRV_DIMENSION_TEXTURE2D,
+		DXGI_FORMAT_R32_FLOAT,
+		D3D12_SRV_DIMENSION_TEXTURE3D,
 		D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING
 	};
 
-	D3D12_TEX2D_SRV tex = {
+	D3D12_TEX3D_SRV tex = {
 		0,
 		1,
-		0,
 		0.0f
 	};
 
-	srvDesc.Texture2D = tex;
+	srvDesc.Texture3D = tex;
 
 	device->CreateShaderResourceView(m_texture.Get(), &srvDesc, srvHeap->GetCPUDescriptorHandleForHeapStart());
 }
@@ -141,7 +141,6 @@ void RenderToTexture::CreatePipelineState(ID3D12Device* device, ID3D12RootSignat
 	ComPtr<ID3DBlob> vertexShader;
 	ComPtr<ID3DBlob> pixelShader;
 	UINT compileFlags = 0;
-
 
 	ThrowIfFailed(D3DCompileFromFile(L"ShadersTex.hlsl", NULL, NULL, "vsMain", "vs_5_1", compileFlags, 0, &vertexShader, NULL));
 	ThrowIfFailed(D3DCompileFromFile(L"ShadersTex.hlsl", NULL, NULL, "psMain", "ps_5_1", compileFlags, 0, &pixelShader, NULL));
@@ -160,7 +159,7 @@ void RenderToTexture::CreatePipelineState(ID3D12Device* device, ID3D12RootSignat
 	psDesc.SampleMask = UINT_MAX;
 	psDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 	psDesc.NumRenderTargets = 1;
-	psDesc.RTVFormats[0] = DXGI_FORMAT_R32G32B32A32_FLOAT;
+	psDesc.RTVFormats[0] = DXGI_FORMAT_R32_FLOAT;
 	psDesc.SampleDesc.Count = 1;
 
 
